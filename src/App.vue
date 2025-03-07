@@ -5,6 +5,7 @@ import BookList from './BookList.vue';
 import Settings from './components/Settings.vue';
 import {useToast} from 'vue-toast-notification';
 import 'vue-toast-notification/dist/theme-sugar.css';
+import './index.css'
 
 const $toast = useToast();
 const isLoading = ref(false);
@@ -112,7 +113,7 @@ const items = [
             <p class="text-amber-400 text-sm">Indexing PDF...</p>
           </div>
           <button @click="indexPdf" v-if="!isIndexing" :disabled="isIndexing"
-            class="bg-emerald-400 text-black p-2 rounded-sm">
+            class="bg-primary text-black p-2 rounded-sm">
             Start Indexing
           </button>
         </div>
@@ -131,7 +132,7 @@ const items = [
 
     <div class="absolute bottom-0 flex gap-4 justify-center bg-gray-900 w-full pt-4 pb-0 rounded-t-4xl">
       <button @click="currentTab = 'home'" :class="{
-        'bg-emerald-400 text-black px-4 py-2 rounded-t-2xl': currentTab === 'home',
+        'bg-accent text-black px-4 py-2 rounded-t-2xl': currentTab === 'home',
         'text-gray-400 px-4 py-2': currentTab !== 'home'
       }">
         Home
@@ -139,14 +140,14 @@ const items = [
 
 
       <button @click="currentTab = 'my-books'" :class="{
-        'bg-emerald-400 text-black px-4 py-2 rounded-t-2xl': currentTab === 'my-books',
+        'bg-accent text-black px-4 py-2 rounded-t-2xl': currentTab === 'my-books',
         'text-gray-400 px-4 py-2': currentTab !== 'my-books'
       }">
         My Books
       </button>
 
       <button @click="currentTab = 'settings'" :class="{
-        'bg-emerald-400 text-black px-4 py-2 rounded-t-2xl': currentTab === 'settings',
+        'bg-accent text-black px-4 py-2 rounded-t-2xl': currentTab === 'settings',
         'text-gray-400 px-4 py-2': currentTab !== 'settings'
       }">
         Settings

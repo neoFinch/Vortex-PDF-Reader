@@ -1,8 +1,10 @@
 <script setup>
 import { onMounted, ref } from 'vue';
 import Loader from './Loader.vue';
-import {useToast} from 'vue-toast-notification';
+import { useToast } from 'vue-toast-notification';
 import 'vue-toast-notification/dist/theme-sugar.css';
+import { VMarkdownView } from 'vue3-markdown'
+import 'vue3-markdown/dist/style.css'
 
 const $toast = useToast();
 const chat = ref([]);
@@ -39,7 +41,7 @@ const handleKeyUp = async (event) => {
 }
 
 onMounted(() => {
-  
+
   console.log('mounted', { title: props.bookTitle });
   window.electronAPI.getRagInstance(props.bookTitle).then(result => {
     console.log('getRagInstance result:', result);
@@ -58,7 +60,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-col p-4 w-full">
     <div class="flex w-full justify-end">
-      <button @click="handleCloseModal" class="bg-emerald-400 text-black p-1 rounded-sm text-xs cursor-pointer">
+      <button @click="handleCloseModal" class="bg-primary text-black p-1 rounded-sm text-xs cursor-pointer">
         Close
       </button>
     </div>
@@ -70,12 +72,14 @@ onMounted(() => {
     </div>
     <section class="chat-window  relative flex flex-col overflow-y-auto">
       <div class="chat-window-body flex flex-col w-full bg-gray-900 mb-2 border-gray-400 rounded-md p-2">
-        <div v-for="message in chat" :key="message.user" class="w-full flex mb-2" :class="message.user === 'You' ? 'justify-end': ''">
+        <div v-for="message in chat" :key="message.user" class="w-full flex mb-2"
+          :class="message.user === 'You' ? 'justify-end' : ''">
           <div :class="message.user === 'You' ?
-            'bg-emerald-400 w-fit p-2 rounded-lg'
-            : 'bg-violet-400 w-fit p-2 rounded-lg'">
-            <p class="text-gray-800 text-sm w-full font-bold">
-              {{ message.message }}
+            'bg-secondary w-fit p-2 rounded-lg w-2-3rd'
+            : 'bg-secondary w-fit p-2 rounded-lg w-2-3rd'">
+            <p class="text-gray-100 text-sm w-full font-bold">
+              <!-- {{ message.message }} -->
+              <VMarkdownView :content="message.message"/>
             </p>
           </div>
         </div>
@@ -101,12 +105,21 @@ onMounted(() => {
 }
 
 .chat-window-body {
-  min-height: calc(100vh - 170px);
+  height: calc(100vh - 170px);
   overflow-y: auto;
 }
 
 .search-box:focus {
   border-bottom: 1px solid #00bc7d;
   outline: none;
+}
+
+.markdown-body {
+  background-color: transparent;
+}
+
+.w-2-3rd {
+  max-width: 66.66%;
+  width: fit-content
 }
 </style>

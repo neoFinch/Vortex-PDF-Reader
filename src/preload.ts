@@ -26,6 +26,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveUserSettings: (apiKey: string) => {
     console.log('[PRELOAD] saveUserSettings apiKey:', apiKey);
     return ipcRenderer.invoke('save-user-settings', apiKey)
+  },
+  getUserSettings: () => {
+    console.log('[PRELOAD] getUserSettings');
+    return ipcRenderer.invoke('get-user-settings')
   }
 })
 
