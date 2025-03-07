@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { app } from 'electron';
 import fs from 'node:fs';
-
+// import { SecureKeyStore } from './secure-storage';
 
 export type book = {
     title: string;
@@ -21,9 +21,11 @@ export class DB {
     books: Array<book>;
     store: any;
     dbPath = path.join(app.getPath('userData'), 'simple-json-db.json');
+    // secureKeyStore: SecureKeyStore;
     constructor() {
         this.books = [];
         this.store = {};
+        // this.secureKeyStore = new SecureKeyStore();
     }
 
     init() {
@@ -58,13 +60,16 @@ export class DB {
         }
         const index = this.books.indexOf(bookExists);
         this.books[index] = book;
-        fs.writeFileSync(this.dbPath, JSON.stringify({ books: this.books }, null, 2));
+
+        //fs.writeFileSync(this.dbPath, JSON.stringify({ books: this.books }, null, 2));
+        let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
+        tempStore.books = this.books;
+        fs.writeFileSync(this.dbPath, JSON.stringify(tempStore, null, 2));
         return { success: true, message: 'Book updated successfully' };
     }
 
     saveUserSettings(apiKey: string) {
 
-        console.log('saveUserSettings apiKey:', apiKey);
         let userSettings = {
             apiKey: apiKey
         }
@@ -72,6 +77,16 @@ export class DB {
         tempStore.userSettings = userSettings;
         fs.writeFileSync(this.dbPath, JSON.stringify(tempStore, null, 2));
         return { success: true, message: 'User settings saved successfully' };
+    }
+
+    getUserSettings() {
+        let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
+        return tempStore.userSettings;
+    }
+
+    getAPIKey() {
+        let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
+        return tempStore?.userSettings?.apiKey ?? "";
     }
 
 }

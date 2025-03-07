@@ -11,8 +11,15 @@ import { Annotation, StateGraph } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 import 'dotenv/config'
 import { DB } from "./db";
+import { ChatOllama } from "@langchain/ollama";
 
-let api_key = process.env.OPENAI_API_KEY ?? '';
+
+const db = new DB();
+db.init();
+
+let apiKey = db.getAPIKey()
+
+let api_key = process.env.OPENAI_API_KEY ?? apiKey;
 
 import log from 'electron-log/main';
 log.initialize();
@@ -22,8 +29,7 @@ log.transports.file.resolvePathFn = () => path.join(path.join(app.getPath('userD
 console.log = log.log;
 
 
-const db = new DB();
-db.init();
+
 
 const vectorDbDir = path.join(app.getPath('userData'), 'vectordb');
 console.log({ vectorDbDir })
@@ -71,7 +77,26 @@ export const indexPdf = async (filePath: string, fileName: string) => {
 		// save to disk
 		await vectorStore.save(`${vectorDbDir}/${fileName}`);
 
-		const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+		// const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+
+		const promptTemplate = ChatPromptTemplate.fromTemplate(`
+			You are an advanced AI assistant designed for question-answering tasks. Use the retrieved context to provide a detailed and well-structured response.
+			
+			If the retrieved context does not fully answer the question, acknowledge that and provide the best possible explanation based on available knowledge.
+			
+			### Question:  
+			{question}  
+			
+			### Context:  
+			{context}  
+			
+			### Answer:  
+			- **Summary:** Provide a brief summary if applicable.  
+			- **Key Details:** Elaborate on important points from the context.  
+			- **Additional Insights:** Offer relevant background information if needed.  
+			- **Sources:** Mention which parts of the context contributed to your response.  
+			`);
+			
 
 
 		// Define state for application
@@ -92,12 +117,23 @@ export const indexPdf = async (filePath: string, fileName: string) => {
 		};
 
 
+		// const generate = async (state: typeof StateAnnotation.State) => {
+		// 	const docsContent = state.context.map(doc => doc.pageContent).join("\n");
+		// 	const messages = await promptTemplate.invoke({ question: state.question, context: docsContent });
+		// 	const response = await llm.invoke(messages);
+		// 	return { answer: response.content };
+		// };
+
 		const generate = async (state: typeof StateAnnotation.State) => {
 			const docsContent = state.context.map(doc => doc.pageContent).join("\n");
-			const messages = await promptTemplate.invoke({ question: state.question, context: docsContent });
+			const messages = await promptTemplate.invoke({ 
+					question: state.question, 
+					context: docsContent 
+			});
 			const response = await llm.invoke(messages);
 			return { answer: response.content };
-		};
+	};
+	
 
 
 		// Compile application and test
@@ -143,7 +179,26 @@ export const loadVectorStoreAndGraph = async (fileName: string) => {
 	try {
 
 		// Prompt template
-		const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+		// const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
+
+		const promptTemplate = ChatPromptTemplate.fromTemplate(`
+			You are an advanced AI assistant designed for question-answering tasks. Use the retrieved context to provide a detailed and well-structured response.
+			
+			If the retrieved context does not fully answer the question, acknowledge that and provide the best possible explanation based on available knowledge.
+			
+			### Question:  
+			{question}  
+			
+			### Context:  
+			{context}  
+			
+			### Answer:  
+			- **Summary:** Provide a brief summary if applicable.  
+			- **Key Details:** Elaborate on important points from the context.  
+			- **Additional Insights:** Offer relevant background information if needed.  
+			- **Sources:** Mention which parts of the context contributed to your response.  
+			`);
+			
 
 		// embeddings
 		console.log('api_key:', api_key);
@@ -165,7 +220,7 @@ export const loadVectorStoreAndGraph = async (fileName: string) => {
 		// console.log({vectorDbDir})
 		const vectorStore = await FaissStore.load(`${vectorDbDir}/${fileName}`, embeddings);
 
-		console.log('vectorStore:', vectorStore);
+		// console.log('vectorStore:', vectorStore);
 
 		// creating state graph
 		const InputStateAnnotation = Annotation.Root({
@@ -185,13 +240,23 @@ export const loadVectorStoreAndGraph = async (fileName: string) => {
 		};
 
 
+		// const generate = async (state: typeof StateAnnotation.State) => {
+		// 	const docsContent = state.context.map(doc => doc.pageContent).join("\n");
+		// 	const messages = await promptTemplate.invoke({ question: state.question, context: docsContent });
+		// 	const response = await llm.invoke(messages);
+		// 	return { answer: response.content };
+		// };
+
 		const generate = async (state: typeof StateAnnotation.State) => {
 			const docsContent = state.context.map(doc => doc.pageContent).join("\n");
-			const messages = await promptTemplate.invoke({ question: state.question, context: docsContent });
+			const messages = await promptTemplate.invoke({ 
+					question: state.question, 
+					context: docsContent 
+			});
 			const response = await llm.invoke(messages);
 			return { answer: response.content };
-		};
-
+	};
+	
 
 		// Compile application and test
 		const graph = new StateGraph(StateAnnotation)

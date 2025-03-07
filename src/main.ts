@@ -167,7 +167,7 @@ ipcMain.handle('index-pdf', async (event, fileName: string) => {
 
 ipcMain.handle('get-all-books', () => {
   console.log('get-all-books');
-  return db.books
+  return db.getBooks()
 });
 
 
@@ -185,18 +185,6 @@ ipcMain.handle('create-new-webview-and-load-pdf', async (event, fileName: string
     const absolutePath = path.join(appDataPath, fileName);
 
     console.log('absolutePath:', absolutePath);
-
-
-    // const win = new BaseWindow({ width: 800, height: 400 })
-
-
-
-    // const view1 = new WebContentsView()
-    // view1.webContents.loadFile(absolutePath)
-    // view1.setBounds({ x: 0, y: 0, width: 800, height: 400 })
-    // win.contentView.addChildView(view1)
-
-
 
   } catch (error) {
     console.error('Error creating new webview and loading PDF:', error);
@@ -254,4 +242,9 @@ ipcMain.handle('save-user-settings', async (event, apiKey: string) => {
   console.log('save-user-settings apiKey:', apiKey);
   db.saveUserSettings(apiKey);
   return { success: true, message: 'User settings saved successfully' };
-})
+});
+
+ipcMain.handle('get-user-settings', () => {
+  console.log('get-user-settings');
+  return db.getUserSettings();
+});

@@ -1,7 +1,10 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
 import ChatModal from './components/ChatModal.vue';
+import {useToast} from 'vue-toast-notification';
+import 'vue-toast-notification/dist/theme-sugar.css';
 
+const $toast = useToast();
 const books = ref([])
 const isIndexing = ref(false);
 const indexingError = ref(null);
@@ -24,6 +27,8 @@ async function indexPdf(fileName) {
     console.log('[RENDERER] indexPdf result:', result);
     if (result.success) {
       console.log('Indexing successful');
+      $toast.success('Indexing Successful')
+      refresh()
     } else {
       indexingError.value = result.message || 'Failed to index PDF';
     }
@@ -66,7 +71,7 @@ onMounted(async () => {
   <div class="flex flex-col p-4 w-full">
     <h1 class="w-full text-emerald-500 text-2xl mb-8">
       My Books
-      <button @click="refresh" class="bg-emerald-400 text-black p-1 rounded-sm text-xs">
+      <button @click="refresh" class="bg-secondary text-black p-1 rounded-sm text-xs cursor-pointer">
         Refresh
       </button>
     </h1>
@@ -81,15 +86,15 @@ onMounted(async () => {
         <p class="text-gray-400 mr-4 w-6/12">{{ book.title }}</p>
         <p class="text-gray-400 mr-4 w-2/12">{{ book.indexingStatus }}</p>
         <div class="text-gray-400 mr-4 w-4/12 flex justify-end gap-1">
-          <button @click="handleViewBook(book.title)" class="bg-pink-400 text-black p-1 rounded-sm cursor-pointer">
+          <button @click="handleViewBook(book.title)" class="bg-secondary text-black p-1 rounded-sm cursor-pointer">
             View
           </button>
           <button
             @click="showChatModal = true; showingChatForBook = book.title"
-            class="bg-emerald-400 text-black p-1 rounded-sm cursor-pointer">
+            class="bg-secondary text-black p-1 rounded-sm cursor-pointer">
             Chat
           </button>
-          <button @click="indexPdf(book.title)" class="bg-violet-400 text-black p-1 rounded-sm cursor-pointer">
+          <button @click="indexPdf(book.title)" class="bg-secondary text-black p-1 rounded-sm cursor-pointer">
             Index
           </button>
         </div>
@@ -102,3 +107,11 @@ onMounted(async () => {
     <ChatModal :book-title="showingChatForBook" @klose="handleCloseChatModal" />
   </div>
 </template>
+
+
+<style scoped>
+  button:hover {
+    background-color: #BF754B;
+  }
+
+</style>
