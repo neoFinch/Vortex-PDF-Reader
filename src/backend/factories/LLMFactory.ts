@@ -5,27 +5,27 @@ import { DB } from "../db";
 
 export class LLMFactory {
 
-  static createLLM(modelName: string) {
+  static createLLM(modelName: string, modelType: string) {
     let db = new DB();
     db.init();
     const apiKey = db.getAPIKey();
 
-    switch (modelName) {
-      case "gpt-4o-mini":
+    switch (modelType) {
+      case "cloud":
         return new ChatOpenAI({
-          modelName: "gpt-4o-mini",
+          modelName: modelName,
           temperature: 0.7,
           openAIApiKey: apiKey,
         });
 
       case "ollama":
         return new ChatOllama({
-          model: "deepseek-r1:1.5b", 
+          model: modelName, 
           temperature: 0.7,
         });
 
       default:
-        throw new Error(`Unsupported model: ${modelName}`);
+        console.log('defaulter - modelType:', modelType);
     }
   }
 }

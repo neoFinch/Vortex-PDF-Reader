@@ -1,19 +1,19 @@
 import { app, BaseWindow, BrowserWindow, dialog, ipcMain, WebContentsView } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
-import fs from 'node:fs';
-import { indexPdf, loadVectorStoreAndGraph } from './backend/rag';
+import fs, { copyFileSync } from 'node:fs';
+import { indexPdf, initLLM, loadVectorStoreAndGraph } from './backend/rag';
 import { DB, dbSchema } from './backend/db';
 import { CompiledStateGraph, StateDefinition, StateGraph } from '@langchain/langgraph';
+import { exec } from 'node:child_process';
+import log from 'electron-log/main';
 
 
-// const simpleJsonDbPath = path.join(app.getPath('userData'), 'simple-json-db.json');
-// if (!fs.existsSync(simpleJsonDbPath)) {
-//   fs.writeFileSync(simpleJsonDbPath, JSON.stringify({ books: [] }, null, 2));
-// }
-// const simpleJsonDb: dbSchema = JSON.parse(fs.readFileSync(simpleJsonDbPath, 'utf-8'));
-
-// console.log('simpleJsonDb:', simpleJsonDb);
+// Initialize logging
+let ollamaPath = ''
+log.initialize();
+log.transports.file.resolvePathFn = () => path.join(path.join(app.getPath('userData')), 'logs/main.log');
+console.log = log.log;
 
 let graph: any | null = null;
 const db = new DB();
@@ -25,6 +25,18 @@ let currentRagInstance = '';
 if (started) {
   app.quit();
 }
+
+exec('which ollama', (error, stdout, stderr) => {
+  if (error) {
+    console.log(`exec log: ${error}`);
+    return;
+  }
+  if (stderr) {
+    console.log(`stderr: ${stderr}`);
+    return;
+  }
+  console.log(`ollama found at: ${stdout}`);
+});
 
 const createWindow = () => {
   // Create the browser window.
@@ -44,7 +56,7 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished
@@ -238,13 +250,39 @@ ipcMain.handle('ask-the-rag', async (event, question: string) => {
   }
 })
 
-ipcMain.handle('save-user-settings', async (event, apiKey: string) => {
-  console.log('save-user-settings apiKey:', apiKey);
-  db.saveUserSettings(apiKey);
+ipcMain.handle('save-user-settings', async (event, userSettings: any) => {
+  console.log('save-user-settings apiKey:', userSettings);
+  db.saveUserSettings(userSettings);
+  await initLLM(userSettings.model, userSettings.modelType);
   return { success: true, message: 'User settings saved successfully' };
 });
 
 ipcMain.handle('get-user-settings', () => {
   console.log('get-user-settings');
   return db.getUserSettings();
+});
+
+
+ipcMain.handle('get-ollama-models', async (event) => {
+  let res = await new Promise((resolve, reject) => {
+    exec('/usr/local/bin/ollama list', (error, stdout, stderr) => {
+      if (error) {
+        console.error(`exec error: ${error}`);
+        reject(error);
+      }
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+        reject(stderr);
+      }
+
+      const lines = stdout.trim().split('\n');      
+      let modelNames = lines.map(line => line.split(' ')[0]).slice(1);
+      console.log('ollama models:', modelNames);
+      resolve(modelNames);
+    });
+  });
+
+
+  console.log('ollama models:', res);
+  return res
 });

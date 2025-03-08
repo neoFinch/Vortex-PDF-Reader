@@ -9,6 +9,7 @@ import 'vue3-markdown/dist/style.css'
 const $toast = useToast();
 const chat = ref([]);
 const isLoading = ref(false);
+const userSettings = ref({});
 
 const props = defineProps({
   bookTitle: String,
@@ -40,7 +41,7 @@ const handleKeyUp = async (event) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
 
   console.log('mounted', { title: props.bookTitle });
   window.electronAPI.getRagInstance(props.bookTitle).then(result => {
@@ -52,6 +53,8 @@ onMounted(() => {
       console.error('Error creating RAG instance:', result.message);
     }
   });
+
+  userSettings.value = await window.electronAPI.getUserSettings();
 })
 
 </script>
@@ -60,7 +63,7 @@ onMounted(() => {
 <template>
   <div class="flex flex-col p-4 w-full">
     <div class="flex w-full justify-end">
-      <button @click="handleCloseModal" class="bg-primary text-black p-1 rounded-sm text-xs cursor-pointer">
+      <button @click="handleCloseModal" class="bg-accent text-black font-bold p-1 rounded-sm text-xs cursor-pointer">
         Close
       </button>
     </div>
@@ -68,15 +71,17 @@ onMounted(() => {
       <h1 class="w-full text-emerald-500 text-2xl mb-2">Let's Dig Deeper</h1>
       <h2 class="text-gray-300">
         Learning about : <span class="text-emerald-400">{{ bookTitle }}</span>
+        using <span class="text-emerald-400">{{ userSettings.model }}</span> model
       </h2>
+
     </div>
     <section class="chat-window  relative flex flex-col overflow-y-auto">
-      <div class="chat-window-body flex flex-col w-full bg-gray-900 mb-2 border-gray-400 rounded-md p-2">
+      <div class="chat-window-body flex flex-col w-full  mb-2 border-gray-400 rounded-md p-2">
         <div v-for="message in chat" :key="message.user" class="w-full flex mb-2"
           :class="message.user === 'You' ? 'justify-end' : ''">
           <div :class="message.user === 'You' ?
-            'bg-secondary w-fit p-2 rounded-lg w-2-3rd'
-            : 'bg-secondary w-fit p-2 rounded-lg w-2-3rd'">
+            'bg-primary w-fit p-2 px-3 rounded-lg w-2-3rd'
+            : 'bg-primary w-fit p-2 px-3 rounded-lg w-2-3rd'">
             <p class="text-gray-100 text-sm w-full font-bold">
               <!-- {{ message.message }} -->
               <VMarkdownView :content="message.message"/>

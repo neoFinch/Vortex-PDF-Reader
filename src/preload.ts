@@ -23,13 +23,17 @@ contextBridge.exposeInMainWorld("electronAPI", {
     console.log('[PRELOAD] askTheRag question:', question);
     return await ipcRenderer.invoke('ask-the-rag', question)
   },
-  saveUserSettings: (apiKey: string) => {
-    console.log('[PRELOAD] saveUserSettings apiKey:', apiKey);
-    return ipcRenderer.invoke('save-user-settings', apiKey)
+  saveUserSettings: (userSettings: any) => {
+    console.log('[PRELOAD] saveUserSettings :', userSettings);
+    return ipcRenderer.invoke('save-user-settings', userSettings)
   },
   getUserSettings: () => {
     console.log('[PRELOAD] getUserSettings');
     return ipcRenderer.invoke('get-user-settings')
+  },
+  getOllamaModels: () => {
+    console.log('[PRELOAD] getOllamaModels');
+    return ipcRenderer.invoke('get-ollama-models')
   }
 })
 

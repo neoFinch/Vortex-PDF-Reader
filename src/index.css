@@ -1,13 +1,41 @@
 
 .bg-primary {
-  background-color: #30478C;
+  background-color: #051726;
 }
 
 .bg-secondary {
-  background-color: #8896BF;
+  background-color: #012340;
 }
 
 .bg-accent {
-  background-color: #BF754B;
+  background-color: #69BF41;
 }
 
+.bg-accent-2 {
+  background-color: #0CF25D;
+}
+
+.markdown-body {
+  color: #9fabe7 !important;
+  font-weight: normal;
+}
+
+.markdown-body  pre{
+  color: #92bb52 !important;
+  background-color: #131c2d !important;
+  font-weight: 550;
+}
+
+.text-primary {
+  color: #0460D9;
+}
+
+.chat-modal {
+  background-color: #0D1B2A33;
+  backdrop-filter: blur(10px);
+}
+
+.chat-window-body {
+  background-color: #0460D922;
+  backdrop-filter: blur(40px);
+}

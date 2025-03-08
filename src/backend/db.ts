@@ -9,12 +9,17 @@ export type book = {
     indexingStatus?: 'pending' | 'indexing' | 'indexed' | 'failed';
 }
 
+export type userSettings = {
+    apiKey: string;
+    model: string;
+    modelType: string;
+}
+
 export type dbSchema = {
     books: Array<book>,
-    userSettings?: {
-        apiKey: string;
-    }
+    userSettings?: userSettings
 }
+
 
 
 export class DB {
@@ -32,6 +37,12 @@ export class DB {
         if (!fs.existsSync(this.dbPath)) {
             fs.writeFileSync(this.dbPath, JSON.stringify({ books: [] }, null, 2));
         }
+
+        let fileContent = fs.readFileSync(this.dbPath, 'utf-8');
+        if (fileContent.length === 0) {
+            fs.writeFileSync(this.dbPath, JSON.stringify({ books: [] }, null, 2));
+        }
+        
         this.store = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
         this.books = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8')).books;
     }
@@ -68,10 +79,12 @@ export class DB {
         return { success: true, message: 'Book updated successfully' };
     }
 
-    saveUserSettings(apiKey: string) {
+    saveUserSettings({ apiKey, model, modelType }: userSettings) {
 
         let userSettings = {
-            apiKey: apiKey
+            apiKey: apiKey,
+            model: model,
+            modelType: modelType
         }
         let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
         tempStore.userSettings = userSettings;
