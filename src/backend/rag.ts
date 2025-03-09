@@ -11,8 +11,9 @@ import { Annotation, StateGraph } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 import 'dotenv/config'
 import { DB } from "./db";
-import { ChatOllama } from "@langchain/ollama";
+import { ChatOllama, OllamaEmbeddings } from "@langchain/ollama";
 import log from 'electron-log/main';
+import { LLMFactory } from "./factories/LLMFactory";
 
 
 const db = new DB();
@@ -75,13 +76,21 @@ export const indexPdf = async (filePath: string, fileName: string) => {
 	// console.log('indexPdf filePath:', filePath);
 
 	// initialie embeddings
-	const embeddings = new OpenAIEmbeddings({
-		model: "text-embedding-3-large",
-		apiKey: api_key
-	});
+	// const embeddings = new OpenAIEmbeddings({
+	// 	model: "text-embedding-3-large",
+	// 	apiKey: api_key
+	// });
+
+
+	const ollamaEmbeddings = new OllamaEmbeddings({
+		model: 'nomic-embed-text:latest',
+		baseUrl: 'http://localhost:11434'
+	})
 
 	
-	const vectorStore = new FaissStore(embeddings, {});
+	// new Hugg
+	
+	const vectorStore = new FaissStore(ollamaEmbeddings, {});
 
 
 	try {
@@ -227,10 +236,10 @@ export const loadVectorStoreAndGraph = async (fileName: string) => {
 
 		// embeddings
 		console.log('api_key:', api_key);
-		const embeddings = new OpenAIEmbeddings({
-			model: "text-embedding-3-large",
-			apiKey: api_key
-		});
+		// const embeddings = new OpenAIEmbeddings({
+		// 	model: "text-embedding-3-large",
+		// 	apiKey: api_key
+		// });
 
 		// LLM
 		// const llm = new ChatOpenAI({
@@ -239,11 +248,16 @@ export const loadVectorStoreAndGraph = async (fileName: string) => {
 		// 	apiKey: api_key
 		// });
 
+		const ollamaEmbeddings = new OllamaEmbeddings({
+			model: 'nomic-embed-text:latest',
+			baseUrl: 'http://localhost:11434'
+		})
+	
 
 		// load vector store from file
 		const vectorDbDir = path.join(app.getPath('userData'), 'vectordb');
 		// console.log({vectorDbDir})
-		const vectorStore = await FaissStore.load(`${vectorDbDir}/${fileName}`, embeddings);
+		const vectorStore = await FaissStore.load(`${vectorDbDir}/${fileName}`, ollamaEmbeddings);
 
 		// console.log('vectorStore:', vectorStore);
 

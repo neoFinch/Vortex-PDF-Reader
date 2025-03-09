@@ -7,6 +7,7 @@ import { DB, dbSchema } from './backend/db';
 import { CompiledStateGraph, StateDefinition, StateGraph } from '@langchain/langgraph';
 import { exec } from 'node:child_process';
 import log from 'electron-log/main';
+import { Worker } from 'node:worker_threads';
 
 
 // Initialize logging
@@ -285,4 +286,30 @@ ipcMain.handle('get-ollama-models', async (event) => {
 
   console.log('ollama models:', res);
   return res
+});
+
+
+export function getEmbeddings(text: string) {
+
+  return new Promise((resolve, reject) => {
+    console.log('[main.ts] getEmbeddings text:', text);
+    const worker = new Worker('./src/backend/workers/EmbeddingWorker.mjs');
+    worker.postMessage( text );
+
+    worker.on('message', (embeddings) => {
+      console.log('worker message:', embeddings);
+      resolve(embeddings);
+      worker.terminate();
+    });
+
+    worker.on("error", (err) => {
+      reject(err);
+      worker.terminate();
+    });
+  })
+}
+
+ipcMain.handle('get-embeddings', async (event, text: string) => {
+  console.log('get-embeddings');
+  return await getEmbeddings(text);
 });

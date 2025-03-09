@@ -45,7 +45,7 @@ onMounted(async () => {
 
 
     <div class="flex flex-col gap-4 py-4 w-full">
-      <label for="" class="text-gray-400 text-sm">Select Model Type</label>
+      <label for="" class="text-gray-400 text-sm">Select Model Provider</label>
       <select v-on:change="handleModelTypeChange" v-model="modelType"
         class="border border-gray-400 text-gray-400 w-full rounded-md p-2" name="model-type">
         <option value="select-model-type">Select Model Type</option>

@@ -34,6 +34,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getOllamaModels: () => {
     console.log('[PRELOAD] getOllamaModels');
     return ipcRenderer.invoke('get-ollama-models')
+  },
+  getEmbeddings: (text: string) => {
+    console.log('[PRELOAD] getEmbeddings');
+    return ipcRenderer.invoke('get-embeddings', text) 
   }
 })
 

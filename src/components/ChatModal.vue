@@ -10,6 +10,7 @@ const $toast = useToast();
 const chat = ref([]);
 const isLoading = ref(false);
 const userSettings = ref({});
+const isRagInstanceCreated = ref(false);
 
 const props = defineProps({
   bookTitle: String,
@@ -36,6 +37,7 @@ const handleKeyUp = async (event) => {
         chat.value.push({ user: 'System', message: result.answer });
       } else {
         console.error('Error asking the RAG:', result.message);
+        
       }
     });
   }
@@ -49,8 +51,11 @@ onMounted(async () => {
     if (result.success) {
       console.log('RAG instance created');
       $toast.success('RAG instance created');
+      isRagInstanceCreated.value = true;
     } else {
       console.error('Error creating RAG instance:', result.message);
+      $toast.error('Error creating RAG instance');
+      handleCloseModal();
     }
   });
 
@@ -61,7 +66,10 @@ onMounted(async () => {
 
 
 <template>
-  <div class="flex flex-col p-4 w-full">
+  <div v-if="!isRagInstanceCreated" class="flex flex-col p-4 w-full items-center justify-center text-white text-2xl">
+    Loading...
+  </div>
+  <div v-if="isRagInstanceCreated" class="flex flex-col p-4 w-full">
     <div class="flex w-full justify-end">
       <button @click="handleCloseModal" class="bg-accent text-black font-bold p-1 rounded-sm text-xs cursor-pointer">
         Close

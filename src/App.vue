@@ -135,7 +135,7 @@ const items = [
     </section>
 
 
-    <div class="absolute bottom-0 flex gap-4 justify-center bg-secondary w-full pt-4 pb-0 rounded-t-4xl">
+    <div class="bottom-nav absolute bottom-0 flex gap-4 justify-center bg-secondary w-full pt-4 pb-0 rounded-t-4xl">
       <button @click="currentTab = 'home'" :class="{
         'bg-accent text-black px-4 py-2 rounded-t-2xl': currentTab === 'home',
         'text-gray-400 px-4 py-2': currentTab !== 'home'
