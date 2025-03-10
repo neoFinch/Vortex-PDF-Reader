@@ -19,7 +19,7 @@ Ensure you have the following installed:
 1. **Clone the repository**:  
    ```sh
    git clone https://github.com/neoFinch/Vortex-PDF-Reader.git
-   cd <project-folder>
+   cd Vortex-PDF-Reader
 2. **Install dependency**
    ```sh
    npm install
