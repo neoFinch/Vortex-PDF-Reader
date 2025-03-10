@@ -18,7 +18,7 @@ Ensure you have the following installed:
 ### Installation Steps  
 1. **Clone the repository**:  
    ```sh
-   git clone <repo-url>
+   git clone [<repo-url>](https://github.com/neoFinch/Vortex-PDF-Reader.git)
    cd <project-folder>
 2. **Install dependency**
    ```sh
