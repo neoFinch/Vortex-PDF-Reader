@@ -71,8 +71,8 @@ onMounted(async () => {
   </div>
   <div v-if="isRagInstanceCreated" class="flex flex-col p-4 w-full">
     <div class="flex w-full justify-end">
-      <button @click="handleCloseModal" class="bg-accent text-black font-bold p-1 rounded-sm text-xs cursor-pointer">
-        Close
+      <button @click="handleCloseModal" class="bg-accent text-black font-bold p-1 px-2 rounded-sm text-xs cursor-pointer">
+        X
       </button>
     </div>
     <div class="flex justify-start w-full flex-wrap mb-2">

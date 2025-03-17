@@ -18,7 +18,7 @@ export class LLMFactory {
           openAIApiKey: apiKey,
         });
 
-      case "ollama":
+      case "local":
         return new ChatOllama({
           model: modelName, 
           temperature: 0.7,

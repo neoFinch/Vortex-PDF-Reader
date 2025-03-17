@@ -56,10 +56,11 @@ let llm: any = null;
 
 
 export const initLLM = async (modelName: string, modelType: string) => {
-  console.log('initLLM');
+  console.log('initLLM', modelName, modelType);
   llm = LLMFactory.createLLM(modelName, modelType);
-  console.log('llm type: ', llm._llmType);
-  console.log('model type: ', llm._modelType);
+	console.log('llm :: ', llm);
+  // console.log('llm type: ', llm._llmType);
+  // console.log('model type: ', llm._modelType);
 	
 }
 

@@ -13,6 +13,7 @@ export type userSettings = {
     apiKey: string;
     model: string;
     modelType: string;
+    embeddingModel: string;
 }
 
 export type dbSchema = {
@@ -79,12 +80,13 @@ export class DB {
         return { success: true, message: 'Book updated successfully' };
     }
 
-    saveUserSettings({ apiKey, model, modelType }: userSettings) {
+    saveUserSettings({ apiKey, model, modelType, embeddingModel }: userSettings) {
 
         let userSettings = {
             apiKey: apiKey,
             model: model,
-            modelType: modelType
+            modelType: modelType,
+            embeddingModel: embeddingModel
         }
         let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
         tempStore.userSettings = userSettings;
@@ -100,6 +102,18 @@ export class DB {
     getAPIKey() {
         let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
         return tempStore?.userSettings?.apiKey ?? "";
+    }
+
+    getSystemSettings() {
+        let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
+        return tempStore.systemSettings;
+    }
+
+    saveSystemSettings(systemSettings: any) {
+        let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
+        tempStore.systemSettings = systemSettings;
+        fs.writeFileSync(this.dbPath, JSON.stringify(tempStore, null, 2));
+        return { success: true, message: 'System settings saved successfully' };
     }
 
 }

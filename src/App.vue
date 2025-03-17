@@ -5,7 +5,6 @@ import BookList from './BookList.vue';
 import Settings from './components/Settings.vue';
 import { useToast } from 'vue-toast-notification';
 import 'vue-toast-notification/dist/theme-sugar.css';
-import './index.css'
 import 'animate.css';
 
 const $toast = useToast();
@@ -75,7 +74,7 @@ const items = [
 
 <template>
   <main class="relative">
-    <section v-if="currentTab === 'home'" class="flex items-center min-h-screen relative bg-gray-70">
+    <section v-if="currentTab === 'home'" class="home-tab flex items-center relative bg-gray-70">
       <div class="p-2 text-gray-100 flex flex-wrap w-full justify-center">
         <div class="w-full flex justify-center">
           <div @click="selectPdf" :disabled="isLoading"
@@ -126,14 +125,14 @@ const items = [
 
     </section>
 
-    <section v-if="currentTab === 'my-books'" class="flex min-h-screen relative bg-gray-70 flex-wrap">
+    <section v-if="currentTab === 'my-books'" class="book-tab flex relative bg-gray-70 flex-wrap">
       <BookList />
     </section>
 
-    <section v-if="currentTab === 'settings'" class="flex min-h-screen relative bg-gray-70 flex-wrap">
+    <section v-if="currentTab === 'settings'" class="settings-tab flex relative bg-gray-70 flex-wrap">
       <Settings />
     </section>
-
+    
 
     <div class="bottom-nav absolute bottom-0 flex gap-4 justify-center bg-secondary w-full pt-4 pb-0 rounded-t-4xl">
       <button @click="currentTab = 'home'" :class="{

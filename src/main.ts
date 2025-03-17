@@ -27,23 +27,24 @@ if (started) {
   app.quit();
 }
 
-exec('which ollama', (error, stdout, stderr) => {
-  if (error) {
-    console.log(`exec log: ${error}`);
-    return;
-  }
-  if (stderr) {
-    console.log(`stderr: ${stderr}`);
-    return;
-  }
-  console.log(`ollama found at: ${stdout}`);
-});
+// exec('which ollama', (error, stdout, stderr) => {
+//   if (error) {
+//     console.log(`exec log: ${error}`);
+//     return;
+//   }
+//   if (stderr) {
+//     console.log(`stderr: ${stderr}`);
+//     return;
+//   }
+//   console.log(`ollama found at: ${stdout}`);
+// });
 
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    titleBarStyle: 'hidden',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
@@ -57,7 +58,7 @@ const createWindow = () => {
   }
 
   // Open the DevTools.
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished
@@ -276,7 +277,7 @@ ipcMain.handle('get-ollama-models', async (event) => {
         reject(stderr);
       }
 
-      const lines = stdout.trim().split('\n');      
+      const lines = stdout.trim().split('\n');
       let modelNames = lines.map(line => line.split(' ')[0]).slice(1);
       console.log('ollama models:', modelNames);
       resolve(modelNames);
@@ -289,27 +290,67 @@ ipcMain.handle('get-ollama-models', async (event) => {
 });
 
 
-export function getEmbeddings(text: string) {
+// export function getEmbeddings(text: string) {
 
-  return new Promise((resolve, reject) => {
-    console.log('[main.ts] getEmbeddings text:', text);
-    const worker = new Worker('./src/backend/workers/EmbeddingWorker.mjs');
-    worker.postMessage( text );
+//   return new Promise((resolve, reject) => {
+//     console.log('[main.ts] getEmbeddings text:', text);
+//     const worker = new Worker('./src/backend/workers/EmbeddingWorker.mjs');
+//     worker.postMessage( text );
 
-    worker.on('message', (embeddings) => {
-      console.log('worker message:', embeddings);
-      resolve(embeddings);
-      worker.terminate();
-    });
+//     worker.on('message', (embeddings) => {
+//       console.log('worker message:', embeddings);
+//       resolve(embeddings);
+//       worker.terminate();
+//     });
 
-    worker.on("error", (err) => {
-      reject(err);
-      worker.terminate();
-    });
-  })
-}
+//     worker.on("error", (err) => {
+//       reject(err);
+//       worker.terminate();
+//     });
+//   })
+// }
 
 ipcMain.handle('get-embeddings', async (event, text: string) => {
   console.log('get-embeddings');
-  return await getEmbeddings(text);
+  // return await getEmbeddings(text);
+});
+
+
+ipcMain.handle('check-if-ollama-model-installed', async () => {
+  console.log('[check-if-ollama-model-installed]');
+  let response = {
+    success: false,
+    message: ''
+  };
+
+  let res = await new Promise((resolve, reject) => {
+    exec('/usr/local/bin/ollama list', (error, stdout, stderr) => {
+      if (error) {
+        console.error(`exec error: ${error}`);
+        reject(JSON.stringify({success: false, message: error}));
+      }
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+        reject(JSON.stringify({success: false, message: stderr}));
+      }
+
+      resolve(stdout);
+
+    })
+  });
+  
+  console.log('--------- ollama models: ---------', res);
+  
+  return {success : true};
+});
+
+ipcMain.handle('get-system-settings', async () => {
+  console.log('get-system-settings');
+  return db.getSystemSettings();  
+});
+
+ipcMain.handle('save-system-settings', async (event, systemSettings: any) => {
+  console.log('save-system-settings called :: ', systemSettings);
+  db.saveSystemSettings(systemSettings);
+  return { success: true, message: 'System settings saved successfully' };
 });

@@ -38,6 +38,18 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getEmbeddings: (text: string) => {
     console.log('[PRELOAD] getEmbeddings');
     return ipcRenderer.invoke('get-embeddings', text) 
+  },
+  checkIfOllamaModelInstalled: () => {
+    console.log('[PRELOAD] checkIfOllamaModelInstalled');
+    return ipcRenderer.invoke('check-if-ollama-model-installed')
+  },
+  getSystemSettings: () => {
+    console.log('[PRELOAD] getSystemSettings');
+    return ipcRenderer.invoke('get-system-settings')
+  },
+  saveSystemSettings: (systemSettings: any) => {
+    console.log('[PRELOAD] saveSystemSettings');
+    return ipcRenderer.invoke('save-system-settings', systemSettings)
   }
 })
 

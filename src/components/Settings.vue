@@ -1,4 +1,5 @@
 <script setup>
+import { checkIfEmbeddingModel } from '../utils/helpers';
 import { onMounted, ref } from 'vue';
 import { useToast } from 'vue-toast-notification';
 import 'vue-toast-notification/dist/theme-sugar.css';
@@ -8,6 +9,8 @@ let model = ref('');
 let modelType = ref('select-model-type');
 let $toast = useToast();
 let modelList = ref([]);
+let embeddingModelList = ref([]);
+let embeddingModel = ref('');
 
 const saveUserSettings = async () => {
   console.log('saveUserSettings', apiKey.value);
@@ -29,7 +32,11 @@ const handleModelTypeChange = (event) => {
 onMounted(async () => {
   let userSettings = await window.electronAPI.getUserSettings()
   apiKey.value = userSettings?.apiKey;
-  modelList.value = await window.electronAPI.getOllamaModels();
+  embeddingModel.value = userSettings?.embeddingModel;
+
+  let ollamaModels = await window.electronAPI.getOllamaModels();
+  modelList.value = ollamaModels.filter(model => !checkIfEmbeddingModel(model));
+  embeddingModelList.value = ollamaModels.filter(model => checkIfEmbeddingModel(model));
   model.value = userSettings?.model;
   modelType.value = userSettings?.modelType;
 })
@@ -50,7 +57,7 @@ onMounted(async () => {
         class="border border-gray-400 text-gray-400 w-full rounded-md p-2" name="model-type">
         <option value="select-model-type">Select Model Type</option>
         <option value="cloud">Cloud</option>
-        <option value="ollama">Ollama</option>
+        <option value="local">Ollama</option>
       </select>
     </div>
     
@@ -69,17 +76,29 @@ onMounted(async () => {
         placeholder="Add OpenAI API Key" />
     </div>
 
-    <div v-if="modelType === 'ollama'" class="flex flex-col gap-4 py-4 w-full">
+
+
+    <div v-if="modelType === 'local'" class="flex flex-col gap-4 py-4 w-full">
       <label for="" class="text-gray-400 text-sm">Select Model</label>
       <select v-on:change="handleChange" :value="model"
         class="border border-gray-400 text-gray-400 w-full rounded-md p-2" name="model">
+        <option value="">Select Model</option>
         <option v-for="m in modelList" :key="m" :value="m">{{ m }}</option>
+      </select>
+    </div>
+
+    <div v-if="modelType === 'local'" class="flex flex-col gap-4 py-4 w-full">
+      <label for="" class="text-gray-400 text-sm">Select Embedding Model</label>
+      <select v-on:change="handleChange" :value="embeddingModel"
+        class="border border-gray-400 text-gray-400 w-full rounded-md p-2" name="model">
+        <option value="">Select Embedding Model</option>
+        <option v-for="m in embeddingModelList" :key="m" :value="m">{{ m }}</option>
       </select>
     </div>
 
 
     <div class="flex justify-center w-full">
-      <button @click="saveUserSettings" class="w-20 bg-accent p-2 rounded-sm cursor-pointer">
+      <button @click="saveUserSettings" class="w-20 bg-accent p-2 rounded-sm cursor-pointer text-black">
         Save
       </button>
     </div>
