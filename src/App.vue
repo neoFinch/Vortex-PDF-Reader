@@ -3,9 +3,9 @@ import { ref } from 'vue';
 import HomeSvg from './assets/images/home.svg';
 import BookList from './BookList.vue';
 import Settings from './components/Settings.vue';
-import {useToast} from 'vue-toast-notification';
+import { useToast } from 'vue-toast-notification';
 import 'vue-toast-notification/dist/theme-sugar.css';
-import './index.css'
+import 'animate.css';
 
 const $toast = useToast();
 const isLoading = ref(false);
@@ -17,6 +17,7 @@ const position = 'bottom';
 const currentTab = ref('home');
 
 async function selectPdf() {
+  selectedFile.value = null;
   isLoading.value = true;
   error.value = null;
 
@@ -73,12 +74,14 @@ const items = [
 
 <template>
   <main class="relative">
-    <section v-if="currentTab === 'home'" class="flex items-center min-h-screen relative bg-gray-70">
+    <section v-if="currentTab === 'home'" class="home-tab flex items-center relative bg-gray-70">
       <div class="p-2 text-gray-100 flex flex-wrap w-full justify-center">
-        <div @click="selectPdf" :disabled="isLoading"
-          class="flex border border-green-300 rounded-md w-2/3 mb-8 text-center justify-center cursor-pointer p-8">
-          <div class="flex uppercase text-gray-400">
-            {{ isLoading ? 'Selecting...' : 'Select PDF' }}
+        <div class="w-full flex justify-center">
+          <div @click="selectPdf" :disabled="isLoading"
+            class="flex border border-green-300 rounded-md w-2/3 mb-8 text-center justify-center cursor-pointer p-8">
+            <div class="flex uppercase text-gray-400">
+              {{ isLoading ? 'Selecting...' : 'Import (Pdf, Markdown, Txt)' }}
+            </div>
           </div>
         </div>
         <div v-if="selectedFile" class="file-info mb-8 w-2/3">
@@ -91,8 +94,9 @@ const items = [
             {{ selectedFile.filePath }}
           </p>
         </div>
+        <div :class="w - f" v-if="error" class="error">Error: {{ error }}</div>
 
-        <p v-if="error" class="error">Error: {{ error }}</p>
+
 
         <div v-if="selectedFile" class="flex justify-center w-full flex-wrap">
           <div class="flex flex-col items-center w-full p-2" v-if="isIndexing">
@@ -113,7 +117,7 @@ const items = [
             <p class="text-amber-400 text-sm">Indexing PDF...</p>
           </div>
           <button @click="indexPdf" v-if="!isIndexing" :disabled="isIndexing"
-            class="bg-primary text-black p-2 rounded-sm">
+            class="bg-accent text-black p-2 rounded-sm">
             Start Indexing
           </button>
         </div>
@@ -121,16 +125,16 @@ const items = [
 
     </section>
 
-    <section v-if="currentTab === 'my-books'" class="flex min-h-screen relative bg-gray-70 flex-wrap">
+    <section v-if="currentTab === 'my-books'" class="book-tab flex relative bg-gray-70 flex-wrap">
       <BookList />
     </section>
 
-    <section v-if="currentTab === 'settings'" class="flex min-h-screen relative bg-gray-70 flex-wrap">
+    <section v-if="currentTab === 'settings'" class="settings-tab flex relative bg-gray-70 flex-wrap">
       <Settings />
     </section>
+    
 
-
-    <div class="absolute bottom-0 flex gap-4 justify-center bg-gray-900 w-full pt-4 pb-0 rounded-t-4xl">
+    <div class="bottom-nav absolute bottom-0 flex gap-4 justify-center bg-secondary w-full pt-4 pb-0 rounded-t-4xl">
       <button @click="currentTab = 'home'" :class="{
         'bg-accent text-black px-4 py-2 rounded-t-2xl': currentTab === 'home',
         'text-gray-400 px-4 py-2': currentTab !== 'home'
@@ -157,7 +161,7 @@ const items = [
 </template>
 
 <style scoped>
-  button {
-    cursor: pointer;
-  }
+button {
+  cursor: pointer;
+}
 </style>

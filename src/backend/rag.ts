@@ -11,7 +11,9 @@ import { Annotation, StateGraph } from "@langchain/langgraph";
 import { ChatOpenAI } from "@langchain/openai";
 import 'dotenv/config'
 import { DB } from "./db";
-import { ChatOllama } from "@langchain/ollama";
+import { ChatOllama, OllamaEmbeddings } from "@langchain/ollama";
+import log from 'electron-log/main';
+import { LLMFactory } from "./factories/LLMFactory";
 
 
 const db = new DB();
@@ -19,20 +21,51 @@ db.init();
 
 let apiKey = db.getAPIKey()
 
-let api_key = process.env.OPENAI_API_KEY ?? apiKey;
+let api_key = apiKey ?? '';
 
-import log from 'electron-log/main';
+
+// init persisted logging
 log.initialize();
-
 log.transports.file.resolvePathFn = () => path.join(path.join(app.getPath('userData')), 'logs/main.log');
-
 console.log = log.log;
-
-
 
 
 const vectorDbDir = path.join(app.getPath('userData'), 'vectordb');
 console.log({ vectorDbDir })
+
+console.log('api_key:', api_key);
+
+
+/**
+ * Initialize LLM
+ */
+let userSettings = db.getUserSettings();
+let modelName = userSettings?.model;
+let modelType = userSettings?.modelType;
+
+console.log('========modelName ===============');
+console.log({modelName, modelType});
+console.log('========modelName ===============');
+
+// const llm = LLMFactory.createLLM(modelName, modelType);
+// console.log('llm type: ', llm._llmType);
+// console.log('model type: ', llm._modelType);
+
+let llm: any = null;
+
+
+
+export const initLLM = async (modelName: string, modelType: string) => {
+  console.log('initLLM', modelName, modelType);
+  llm = LLMFactory.createLLM(modelName, modelType);
+	console.log('llm :: ', llm);
+  // console.log('llm type: ', llm._llmType);
+  // console.log('model type: ', llm._modelType);
+	
+}
+
+
+initLLM(modelName, modelType);
 
 /**
  * [Fuction to index a PDF file]
@@ -44,19 +77,21 @@ export const indexPdf = async (filePath: string, fileName: string) => {
 	// console.log('indexPdf filePath:', filePath);
 
 	// initialie embeddings
-	const embeddings = new OpenAIEmbeddings({
-		model: "text-embedding-3-large",
-		apiKey: api_key
-	});
+	// const embeddings = new OpenAIEmbeddings({
+	// 	model: "text-embedding-3-large",
+	// 	apiKey: api_key
+	// });
 
 
-	const vectorStore = new FaissStore(embeddings, {});
+	const ollamaEmbeddings = new OllamaEmbeddings({
+		model: 'nomic-embed-text:latest',
+		baseUrl: 'http://localhost:11434'
+	})
 
-	const llm = new ChatOpenAI({
-		model: "gpt-4o-mini",
-		temperature: 0,
-		apiKey: api_key
-	});
+	
+	// new Hugg
+	
+	const vectorStore = new FaissStore(ollamaEmbeddings, {});
 
 
 	try {
@@ -79,23 +114,8 @@ export const indexPdf = async (filePath: string, fileName: string) => {
 
 		// const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
 
-		const promptTemplate = ChatPromptTemplate.fromTemplate(`
-			You are an advanced AI assistant designed for question-answering tasks. Use the retrieved context to provide a detailed and well-structured response.
-			
-			If the retrieved context does not fully answer the question, acknowledge that and provide the best possible explanation based on available knowledge.
-			
-			### Question:  
-			{question}  
-			
-			### Context:  
-			{context}  
-			
-			### Answer:  
-			- **Summary:** Provide a brief summary if applicable.  
-			- **Key Details:** Elaborate on important points from the context.  
-			- **Additional Insights:** Offer relevant background information if needed.  
-			- **Sources:** Mention which parts of the context contributed to your response.  
-			`);
+		console.log('userSettings.promptTemplate:', userSettings.promptTemplate);
+		const promptTemplate = ChatPromptTemplate.fromTemplate(userSettings.promptTemplate);
 			
 
 
@@ -175,7 +195,7 @@ export const indexPdf = async (filePath: string, fileName: string) => {
  * @returns 
  */
 export const loadVectorStoreAndGraph = async (fileName: string) => {
-
+	console.time('loadVectorStoreAndGraph');
 	try {
 
 		// Prompt template
@@ -202,23 +222,28 @@ export const loadVectorStoreAndGraph = async (fileName: string) => {
 
 		// embeddings
 		console.log('api_key:', api_key);
-		const embeddings = new OpenAIEmbeddings({
-			model: "text-embedding-3-large",
-			apiKey: api_key
-		});
+		// const embeddings = new OpenAIEmbeddings({
+		// 	model: "text-embedding-3-large",
+		// 	apiKey: api_key
+		// });
 
 		// LLM
-		const llm = new ChatOpenAI({
-			model: "gpt-4o-mini",
-			temperature: 0,
-			apiKey: api_key
-		});
+		// const llm = new ChatOpenAI({
+		// 	model: "gpt-4o-mini",
+		// 	temperature: 0,
+		// 	apiKey: api_key
+		// });
 
+		const ollamaEmbeddings = new OllamaEmbeddings({
+			model: 'nomic-embed-text:latest',
+			baseUrl: 'http://localhost:11434'
+		})
+	
 
 		// load vector store from file
 		const vectorDbDir = path.join(app.getPath('userData'), 'vectordb');
 		// console.log({vectorDbDir})
-		const vectorStore = await FaissStore.load(`${vectorDbDir}/${fileName}`, embeddings);
+		const vectorStore = await FaissStore.load(`${vectorDbDir}/${fileName}`, ollamaEmbeddings);
 
 		// console.log('vectorStore:', vectorStore);
 
@@ -268,10 +293,11 @@ export const loadVectorStoreAndGraph = async (fileName: string) => {
 			.compile();
 
 		// test the graph
-		const testInput = { question: "What is this book or article about?" };
-		const testOutput = await graph.invoke(testInput);
-		console.log('testOutput:', testOutput);
+		// const testInput = { question: "What is this book or article about?" };
+		// const testOutput = await graph.invoke(testInput);
+		// console.log('testOutput:', testOutput.answer);
 
+		console.timeEnd('loadVectorStoreAndGraph');
 		return {
 			success: true,
 			graph: graph

@@ -3,6 +3,7 @@ import { reactive, ref, onMounted } from 'vue';
 import ChatModal from './components/ChatModal.vue';
 import {useToast} from 'vue-toast-notification';
 import 'vue-toast-notification/dist/theme-sugar.css';
+// import PdfViewer from './components/PdfViewer.vue';
 
 const $toast = useToast();
 const books = ref([])
@@ -10,10 +11,34 @@ const isIndexing = ref(false);
 const indexingError = ref(null);
 const showChatModal = ref(false);
 const showingChatForBook = ref(null);
+// const isPDFVisible = ref(false);
+const pdfLocalPath = ref('');
 
-const handleViewBook = (fileName) => {
+const handleViewBook = async (fileName) => {
   console.log('handleViewBook', fileName);
-  window.electronAPI.createNewWebViewAndLoadPDF(fileName);
+  let data = await window.electronAPI.loadPdfInPdfWindow(fileName);
+  console.log('handleViewBook data:', data);
+  pdfLocalPath.value = data.filePath;
+}
+
+const deleteBook = async (fileName) => {
+  try {
+    console.log('[RENDERER] deleteBook selectedFile:', fileName);
+    const result = await window.electronAPI.deleteBook(fileName);
+
+    console.log('[RENDERER] deleteBook result:', result);
+    if (result.success) {
+      console.log('Delete successful');
+      $toast.success('Delete Successful')
+      refresh()
+    } else {
+      indexingError.value = result.message || 'Failed to delete book';
+    }
+  } catch (err) {
+    indexingError.value = err.toString();
+  } finally {
+    isIndexing.value = false;
+  }
 }
 
 async function indexPdf(fileName) {
@@ -69,9 +94,9 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col p-4 w-full">
-    <h1 class="w-full text-emerald-500 text-2xl mb-8">
+    <h1 class="w-full text-primary text-2xl mb-8 flex gap-2">
       My Books
-      <button @click="refresh" class="bg-secondary text-black p-1 rounded-sm text-xs cursor-pointer">
+      <button @click="refresh" class="bg-accent text-black px-1 py-0 rounded-sm text-xs cursor-pointer">
         Refresh
       </button>
     </h1>
@@ -81,21 +106,24 @@ onMounted(async () => {
         <div class="text-gray-400 mr-4 w-2/12">Status</div>
         <div class="text-gray-400 mr-4 w-4/12 flex justify-end">Actions</div>
       </div>
-      <div class="text-gray-400 flex justify-between w-full items-center border-b py-4" v-for="book in books"
+      <div class=" text-gray-400 flex justify-between w-full items-center border-b py-4" v-for="book in books"
         :key="book.title">
         <p class="text-gray-400 mr-4 w-6/12">{{ book.title }}</p>
         <p class="text-gray-400 mr-4 w-2/12">{{ book.indexingStatus }}</p>
         <div class="text-gray-400 mr-4 w-4/12 flex justify-end gap-1">
-          <button @click="handleViewBook(book.title)" class="bg-secondary text-black p-1 rounded-sm cursor-pointer">
+          <button @click="handleViewBook(book.title)" class="bg-accent text-black p-1 rounded-sm cursor-pointer">
             View
           </button>
           <button
             @click="showChatModal = true; showingChatForBook = book.title"
-            class="bg-secondary text-black p-1 rounded-sm cursor-pointer">
+            class="bg-accent text-black p-1 rounded-sm cursor-pointer">
             Chat
           </button>
-          <button @click="indexPdf(book.title)" class="bg-secondary text-black p-1 rounded-sm cursor-pointer">
+          <button @click="indexPdf(book.title)" class="bg-accent text-black p-1 rounded-sm cursor-pointer">
             Index
+          </button>
+          <button @click="deleteBook(book.title)" class="bg-accent text-black p-1 rounded-sm cursor-pointer">
+            Delete
           </button>
         </div>
       </div>
@@ -103,9 +131,10 @@ onMounted(async () => {
   </div>
   <div
     v-if="showChatModal" 
-    class="fixed top-0 left-0 w-screen h-screen bg-gray-800 flex justify-center z-10">
-    <ChatModal :book-title="showingChatForBook" @klose="handleCloseChatModal" />
+    class="chat-modal fixed top-0 left-0 w-screen h-screen  flex justify-center z-10">
+    <ChatModal class="animate__animated animate__fadeIn animate__delay-0.2s" :book-title="showingChatForBook" @klose="handleCloseChatModal" />
   </div>
+  
 </template>
 
 

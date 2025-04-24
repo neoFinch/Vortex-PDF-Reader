@@ -9,12 +9,19 @@ export type book = {
     indexingStatus?: 'pending' | 'indexing' | 'indexed' | 'failed';
 }
 
+export type userSettings = {
+    apiKey: string;
+    model: string;
+    modelType: string;
+    embeddingModel: string;
+    promptTemplate: string;
+}
+
 export type dbSchema = {
     books: Array<book>,
-    userSettings?: {
-        apiKey: string;
-    }
+    userSettings?: userSettings
 }
+
 
 
 export class DB {
@@ -32,6 +39,12 @@ export class DB {
         if (!fs.existsSync(this.dbPath)) {
             fs.writeFileSync(this.dbPath, JSON.stringify({ books: [] }, null, 2));
         }
+
+        let fileContent = fs.readFileSync(this.dbPath, 'utf-8');
+        if (fileContent.length === 0) {
+            fs.writeFileSync(this.dbPath, JSON.stringify({ books: [] }, null, 2));
+        }
+        
         this.store = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
         this.books = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8')).books;
     }
@@ -47,8 +60,10 @@ export class DB {
             console.log('Book already exists:', bookExists);
             return;
         }
-        this.books.push(book);
-        fs.writeFileSync(this.dbPath, JSON.stringify({ books: this.books }, null, 2));
+        // this.books.push(book);
+        let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
+        tempStore.books.push(book);
+        fs.writeFileSync(this.dbPath, JSON.stringify(tempStore, null, 2));
         return { success: true, message: 'Book added successfully' };
     }
 
@@ -68,10 +83,14 @@ export class DB {
         return { success: true, message: 'Book updated successfully' };
     }
 
-    saveUserSettings(apiKey: string) {
+    saveUserSettings({ apiKey, model, modelType, embeddingModel, promptTemplate }: userSettings) {
 
         let userSettings = {
-            apiKey: apiKey
+            apiKey: apiKey,
+            model: model,
+            modelType: modelType,
+            embeddingModel: embeddingModel,
+            promptTemplate: promptTemplate
         }
         let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
         tempStore.userSettings = userSettings;
@@ -87,6 +106,25 @@ export class DB {
     getAPIKey() {
         let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
         return tempStore?.userSettings?.apiKey ?? "";
+    }
+
+    getSystemSettings() {
+        let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
+        return tempStore.systemSettings;
+    }
+
+    saveSystemSettings(systemSettings: any) {
+        let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
+        tempStore.systemSettings = systemSettings;
+        fs.writeFileSync(this.dbPath, JSON.stringify(tempStore, null, 2));
+        return { success: true, message: 'System settings saved successfully' };
+    }
+
+    deleteBook(fileName: string) {
+        let tempStore = JSON.parse(fs.readFileSync(this.dbPath, 'utf-8'));
+        tempStore.books = tempStore.books.filter(book => book.title !== fileName);
+        fs.writeFileSync(this.dbPath, JSON.stringify(tempStore, null, 2));
+        return { success: true, message: 'Book deleted successfully' };
     }
 
 }
