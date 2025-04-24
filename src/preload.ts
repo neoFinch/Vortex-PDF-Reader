@@ -2,19 +2,19 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 import { contextBridge, ipcRenderer } from "electron";
-import { c } from "vite/dist/node/moduleRunnerTransport.d-CXw_Ws6P";
 
 contextBridge.exposeInMainWorld("electronAPI", {
+  getIpcRendererOn: () => ipcRenderer.on,
   getAllBooks: () => ipcRenderer.invoke('get-all-books'),
   selectAndSavePdf: () => ipcRenderer.invoke('select-and-save-pdf'),
   indexPdf: async (fileName: string) => {
     console.log('[PRELOAD] indexPdf fileName:', fileName);
     return await ipcRenderer.invoke('index-pdf', fileName)
   },
-  createNewWebViewAndLoadPDF: (fileName: string) => {
-    console.log('[PRELOAD] createNewWebViewAndLoadPDF fileName:', fileName);
-    ipcRenderer.invoke('create-new-webview-and-load-pdf', fileName)
-  },
+  // createNewWebViewAndLoadPDF: (fileName: string) => {
+  //   console.log('[PRELOAD] createNewWebViewAndLoadPDF fileName:', fileName);
+  //   return ipcRenderer.invoke('create-new-webview-and-load-pdf', fileName)
+  // },
   getRagInstance: async (fileName: string) => {
     console.log('[PRELOAD] getRagInstance fileName:', fileName);
     return await ipcRenderer.invoke('get-rag-instance', fileName)
@@ -50,6 +50,22 @@ contextBridge.exposeInMainWorld("electronAPI", {
   saveSystemSettings: (systemSettings: any) => {
     console.log('[PRELOAD] saveSystemSettings');
     return ipcRenderer.invoke('save-system-settings', systemSettings)
-  }
+  },
+  deleteBook: (fileName: string) => {
+    console.log('[PRELOAD] deleteBook');
+    return ipcRenderer.invoke('delete-book', fileName)
+  },
+  // getRagStreamResponse: (callback) => {
+  //   console.log('[PRELOAD] getRagStreamResponse');
+  //   return ipcRenderer.on('rag-stream-response', (event, response) => {
+  //     console.log('[PRELOAD] getRagStreamResponse response:', response);
+  //     callback(response)
+  //     // return response;
+  //   })
+  // }
+  loadPdfInPdfWindow: (fileName: string) => {
+    console.log('[PRELOAD] loadPdfInPdfWindow');
+    return ipcRenderer.invoke('load-pdf-in-pdf-window', fileName)
+  },
 })
 

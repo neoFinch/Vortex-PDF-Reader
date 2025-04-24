@@ -80,7 +80,7 @@ const items = [
           <div @click="selectPdf" :disabled="isLoading"
             class="flex border border-green-300 rounded-md w-2/3 mb-8 text-center justify-center cursor-pointer p-8">
             <div class="flex uppercase text-gray-400">
-              {{ isLoading ? 'Selecting...' : 'Select PDF' }}
+              {{ isLoading ? 'Selecting...' : 'Import (Pdf, Markdown, Txt)' }}
             </div>
           </div>
         </div>

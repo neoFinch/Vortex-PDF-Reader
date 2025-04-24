@@ -114,23 +114,8 @@ export const indexPdf = async (filePath: string, fileName: string) => {
 
 		// const promptTemplate = await pull<ChatPromptTemplate>("rlm/rag-prompt");
 
-		const promptTemplate = ChatPromptTemplate.fromTemplate(`
-			You are an advanced AI assistant designed for question-answering tasks. Use the retrieved context to provide a detailed and well-structured response.
-			
-			If the retrieved context does not fully answer the question, acknowledge that and provide the best possible explanation based on available knowledge.
-			
-			### Question:  
-			{question}  
-			
-			### Context:  
-			{context}  
-			
-			### Answer:  
-			- **Summary:** Provide a brief summary if applicable.  
-			- **Key Details:** Elaborate on important points from the context.  
-			- **Additional Insights:** Offer relevant background information if needed.  
-			- **Sources:** Mention which parts of the context contributed to your response.  
-			`);
+		console.log('userSettings.promptTemplate:', userSettings.promptTemplate);
+		const promptTemplate = ChatPromptTemplate.fromTemplate(userSettings.promptTemplate);
 			
 
 
@@ -210,7 +195,7 @@ export const indexPdf = async (filePath: string, fileName: string) => {
  * @returns 
  */
 export const loadVectorStoreAndGraph = async (fileName: string) => {
-
+	console.time('loadVectorStoreAndGraph');
 	try {
 
 		// Prompt template
@@ -308,10 +293,11 @@ export const loadVectorStoreAndGraph = async (fileName: string) => {
 			.compile();
 
 		// test the graph
-		const testInput = { question: "What is this book or article about?" };
-		const testOutput = await graph.invoke(testInput);
-		console.log('testOutput:', testOutput.answer);
+		// const testInput = { question: "What is this book or article about?" };
+		// const testOutput = await graph.invoke(testInput);
+		// console.log('testOutput:', testOutput.answer);
 
+		console.timeEnd('loadVectorStoreAndGraph');
 		return {
 			success: true,
 			graph: graph

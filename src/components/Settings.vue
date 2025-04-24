@@ -7,6 +7,7 @@ import 'vue-toast-notification/dist/theme-sugar.css';
 let apiKey = ref('');
 let model = ref('');
 let modelType = ref('select-model-type');
+let promptTemplate = ref('');
 let $toast = useToast();
 let modelList = ref([]);
 let embeddingModelList = ref([]);
@@ -14,7 +15,13 @@ let embeddingModel = ref('');
 
 const saveUserSettings = async () => {
   console.log('saveUserSettings', apiKey.value);
-  let resopnse = await window.electronAPI.saveUserSettings({ apiKey: apiKey.value, model: model.value, modelType: modelType.value });
+  let resopnse = await window.electronAPI.saveUserSettings({
+    apiKey: apiKey.value,
+    model: model.value,
+    modelType: modelType.value,
+    embeddingModel: embeddingModel.value,
+    promptTemplate: promptTemplate.value
+  });
   console.log('saveUserSettings resopnse:', resopnse);
   $toast.success('Successfully saved user settings')
 }
@@ -29,10 +36,16 @@ const handleModelTypeChange = (event) => {
   modelType.value = event.target.value;
 }
 
+const handleEmbeddingModelChange = (event) => {
+  console.log('handleEmbeddingModelChange', event.target.value);
+  embeddingModel.value = event.target.value;
+}
+
 onMounted(async () => {
   let userSettings = await window.electronAPI.getUserSettings()
   apiKey.value = userSettings?.apiKey;
   embeddingModel.value = userSettings?.embeddingModel;
+  promptTemplate.value = userSettings?.promptTemplate;
 
   let ollamaModels = await window.electronAPI.getOllamaModels();
   modelList.value = ollamaModels.filter(model => !checkIfEmbeddingModel(model));
@@ -60,7 +73,7 @@ onMounted(async () => {
         <option value="local">Ollama</option>
       </select>
     </div>
-    
+
     <div v-if="modelType === 'cloud'" class="flex flex-col gap-4 py-4 w-full">
       <label for="" class="text-gray-400 text-sm">Select Model</label>
       <select v-on:change="handleChange" class="border border-gray-400 text-gray-400 w-full rounded-md p-2">
@@ -89,11 +102,17 @@ onMounted(async () => {
 
     <div v-if="modelType === 'local'" class="flex flex-col gap-4 py-4 w-full">
       <label for="" class="text-gray-400 text-sm">Select Embedding Model</label>
-      <select v-on:change="handleChange" :value="embeddingModel"
+      <select v-on:change="handleEmbeddingModelChange" :value="embeddingModel"
         class="border border-gray-400 text-gray-400 w-full rounded-md p-2" name="model">
         <option value="">Select Embedding Model</option>
         <option v-for="m in embeddingModelList" :key="m" :value="m">{{ m }}</option>
       </select>
+    </div>
+
+    <div class="prompt-template">
+      <label for="" class="text-gray-400 text-sm">Prompt Template</label>
+      <textarea v-model="promptTemplate" class="border border-gray-400 text-gray-400 w-full rounded-md p-2"
+        name="prompt-template" rows="5">{{ promptTemplate }}</textarea>
     </div>
 
 

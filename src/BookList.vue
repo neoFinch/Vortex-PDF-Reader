@@ -3,6 +3,7 @@ import { reactive, ref, onMounted } from 'vue';
 import ChatModal from './components/ChatModal.vue';
 import {useToast} from 'vue-toast-notification';
 import 'vue-toast-notification/dist/theme-sugar.css';
+// import PdfViewer from './components/PdfViewer.vue';
 
 const $toast = useToast();
 const books = ref([])
@@ -10,10 +11,34 @@ const isIndexing = ref(false);
 const indexingError = ref(null);
 const showChatModal = ref(false);
 const showingChatForBook = ref(null);
+// const isPDFVisible = ref(false);
+const pdfLocalPath = ref('');
 
-const handleViewBook = (fileName) => {
+const handleViewBook = async (fileName) => {
   console.log('handleViewBook', fileName);
-  window.electronAPI.createNewWebViewAndLoadPDF(fileName);
+  let data = await window.electronAPI.loadPdfInPdfWindow(fileName);
+  console.log('handleViewBook data:', data);
+  pdfLocalPath.value = data.filePath;
+}
+
+const deleteBook = async (fileName) => {
+  try {
+    console.log('[RENDERER] deleteBook selectedFile:', fileName);
+    const result = await window.electronAPI.deleteBook(fileName);
+
+    console.log('[RENDERER] deleteBook result:', result);
+    if (result.success) {
+      console.log('Delete successful');
+      $toast.success('Delete Successful')
+      refresh()
+    } else {
+      indexingError.value = result.message || 'Failed to delete book';
+    }
+  } catch (err) {
+    indexingError.value = err.toString();
+  } finally {
+    isIndexing.value = false;
+  }
 }
 
 async function indexPdf(fileName) {
@@ -97,6 +122,9 @@ onMounted(async () => {
           <button @click="indexPdf(book.title)" class="bg-accent text-black p-1 rounded-sm cursor-pointer">
             Index
           </button>
+          <button @click="deleteBook(book.title)" class="bg-accent text-black p-1 rounded-sm cursor-pointer">
+            Delete
+          </button>
         </div>
       </div>
     </div>
@@ -106,6 +134,7 @@ onMounted(async () => {
     class="chat-modal fixed top-0 left-0 w-screen h-screen  flex justify-center z-10">
     <ChatModal class="animate__animated animate__fadeIn animate__delay-0.2s" :book-title="showingChatForBook" @klose="handleCloseChatModal" />
   </div>
+  
 </template>
 
 
